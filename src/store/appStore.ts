@@ -42,7 +42,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   inventory: mockInventory,
   selectedPeriodId: 'day',
   chatMessages: [welcomeMessage],
-  activeTaskId: mockTasks[0]?.id,
+  activeTaskId: undefined,
   setSelectedPeriod: (id) => set({ selectedPeriodId: id }),
   setActiveTask: (id) => set({ activeTaskId: id }),
   completeTask: (id) =>

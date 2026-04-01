@@ -18,7 +18,7 @@ export function TodoPage() {
 
   const [filledText, setFilledText] = useState('员工今日体温正常，后厨已完成第一次消毒。');
   const [showBrief, setShowBrief] = useState(false);
-  const activeTask = tasks.find((item) => item.id === activeTaskId) ?? tasks[0];
+  const activeTask = tasks.find((item) => item.id === activeTaskId);
   const completedCount = tasks.filter((item) => item.status === 'completed').length;
 
   const grouped = useMemo(() => {

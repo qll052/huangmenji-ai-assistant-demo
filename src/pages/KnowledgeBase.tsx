@@ -10,7 +10,7 @@ export function KnowledgeBasePage() {
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [showStoreEdit, setShowStoreEdit] = useState(false);
 
-  const currentTemplate = templates.find((item) => item.id === editingId) ?? templates[0];
+  const currentTemplate = templates.find((item) => item.id === editingId);
   const filtered = useMemo(
     () => templates.filter((item) => item.name.includes(keyword) || item.category.includes(keyword) || item.content.includes(keyword)),
     [keyword, templates],
