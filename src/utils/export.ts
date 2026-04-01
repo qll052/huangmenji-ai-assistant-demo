@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 import type { InventoryItem, SalesPeriod } from '../types';
 
 export function downloadPdfReport(period: SalesPeriod, conclusion: string, strategy: string[]) {
@@ -29,17 +30,18 @@ export function downloadPdfReport(period: SalesPeriod, conclusion: string, strat
 }
 
 export function downloadExcelLikeFile(items: InventoryItem[]) {
-  const headers = ['原料', '分类', '当前库存', '安全阈值', '建议采购量'];
   const rows = items
     .filter((item) => item.suggested > 0)
-    .map((item) => [item.name, item.category, `${item.current}${item.unit}`, `${item.threshold}${item.unit}`, `${item.suggested}${item.unit}`]);
+    .map((item) => ({
+      原料: item.name,
+      分类: item.category,
+      当前库存: `${item.current}${item.unit}`,
+      安全阈值: `${item.threshold}${item.unit}`,
+      建议采购量: `${item.suggested}${item.unit}`,
+    }));
 
-  const csv = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `purchase-list-${Date.now()}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '采购清单');
+  XLSX.writeFile(workbook, `purchase-list-${Date.now()}.xlsx`);
 }

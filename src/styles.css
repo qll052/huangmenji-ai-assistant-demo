@@ -845,7 +845,7 @@ textarea {
   position: fixed;
   right: 24px;
   bottom: 92px;
-  width: min(420px, calc(100vw - 32px));
+  width: min(460px, calc(100vw - 32px));
   max-height: min(76vh, 760px);
   z-index: 119;
   border-radius: 28px;
@@ -868,6 +868,7 @@ textarea {
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  width: 100%;
 }
 
 .chat-item span:first-child {
@@ -890,10 +891,16 @@ textarea {
   border-radius: 16px;
   padding: 12px 14px;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .chat-item p {
   margin: 0 0 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
 }
 
 .chat-item small {
@@ -922,6 +929,19 @@ textarea {
 .assistant-drawer .primary-button,
 .assistant-drawer .ghost-button {
   min-width: 110px;
+}
+
+.assistant-drawer::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar,
+.brief-modal::-webkit-scrollbar {
+  width: 10px;
+}
+
+.assistant-drawer::-webkit-scrollbar-thumb,
+.chat-list::-webkit-scrollbar-thumb,
+.brief-modal::-webkit-scrollbar-thumb {
+  background: #c7d2e5;
+  border-radius: 999px;
 }
 
 .assistant-header h3,
