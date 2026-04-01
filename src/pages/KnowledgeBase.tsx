@@ -22,25 +22,55 @@ export function KnowledgeBasePage() {
         <div className="panel-header">
           <div>
             <h2>我的知识库</h2>
-            <p>保留店铺核心资料卡片，避免页面空和丑。</p>
+            <p>以门店名片和标准模板总览为核心，贴近 PPT 中的资料总控视图。</p>
           </div>
           <button className="ghost-button" onClick={() => setShowStoreEdit(true)}>编辑门店资料</button>
         </div>
-        <div className="summary-grid">
+        <div className="knowledge-hero">
           <article className="summary-card summary-hero">
-            <span>门店名称</span>
+            <span>门店名片</span>
             <strong>{storeInfo.name}</strong>
-            <small>标准信息已接入待办预填和 AI 回复</small>
+            <small>标准信息已接入待办预填、知识查询和 AI 回复</small>
           </article>
-          <article className="summary-card">
-            <span>店长</span>
-            <strong>{storeInfo.manager}</strong>
-            <small>联系电话：{storeInfo.phone}</small>
+          <div className="knowledge-side">
+            <article className="summary-card">
+              <span>店长</span>
+              <strong>{storeInfo.manager}</strong>
+              <small>联系电话：{storeInfo.phone}</small>
+            </article>
+            <article className="summary-card">
+              <span>营业时间</span>
+              <strong>{storeInfo.openTime}</strong>
+              <small>支持 AI 自动预填营业信息</small>
+            </article>
+          </div>
+        </div>
+        <article className="summary-card wide summary-address">
+          <span>门店地址</span>
+          <strong>{storeInfo.address}</strong>
+          <small>店铺地址、电话、营业时间会被表单和知识问答直接复用</small>
+        </article>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>知识库概览</h2>
+            <p>按模板分类和使用场景组织，接近 PPT 中“集中查看模板与店铺信息”的设计。</p>
+          </div>
+        </div>
+        <div className="knowledge-metrics">
+          <article className="stat-card">
+            <span>模板数量</span>
+            <strong>{templates.length}</strong>
           </article>
-          <article className="summary-card wide">
-            <span>门店地址</span>
-            <strong>{storeInfo.address}</strong>
-            <small>营业时间：{storeInfo.openTime}</small>
+          <article className="stat-card">
+            <span>常用分类</span>
+            <strong>3 类</strong>
+          </article>
+          <article className="stat-card">
+            <span>最近更新</span>
+            <strong>{templates[0]?.updatedAt ?? '--'}</strong>
           </article>
         </div>
       </section>
@@ -56,10 +86,13 @@ export function KnowledgeBasePage() {
         <div className="template-grid">
           {filtered.map((item) => (
             <button key={item.id} className={`template-item ${editingId === item.id ? 'active' : ''}`} onClick={() => setEditingId(item.id)}>
+              <div className="template-item-top">
+                <span className="template-badge">{item.category}</span>
+                <small>{item.updatedAt}</small>
+              </div>
               <strong>{item.name}</strong>
-              <span>{item.category}</span>
               <p>{item.content}</p>
-              <small>{item.updatedAt}</small>
+              <span className="template-link">点击查看并编辑</span>
             </button>
           ))}
         </div>

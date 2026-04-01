@@ -139,22 +139,36 @@ export function AIAssistantPanel() {
   };
 
   const strategyPreview = getCurrentStrategy();
+  const pendingCount = tasks.filter((item) => item.status !== 'completed').length;
 
   return (
     <>
       <button className="assistant-fab" onClick={() => setExpanded((value) => !value)}>
-        {expanded ? '收起 AI' : '打开 AI'}
+        {expanded ? '收起 AI' : '杨小助'}
       </button>
       {expanded ? (
         <section className="assistant-drawer">
-          <div className="panel-header">
-            <div>
-              <h3>AI 助手</h3>
-              <p>{ocrLoading ? '正在识别图片内容...' : '支持文字、真实语音识别、真实图片 OCR'}</p>
+          <div className="assistant-header">
+            <div className="assistant-brand">
+              <span className="assistant-avatar">AI</span>
+              <div>
+                <h3>杨小助</h3>
+                <p>{ocrLoading ? '正在识别图片内容...' : '门店运营智能助手已在线'}</p>
+              </div>
             </div>
             <button className="ghost-button assistant-suggest-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
               生成建议
             </button>
+          </div>
+          <div className="assistant-overview">
+            <div className="assistant-kpi">
+              <span>今日待办</span>
+              <strong>{pendingCount}</strong>
+            </div>
+            <div className="assistant-kpi">
+              <span>当前能力</span>
+              <strong>语音 + OCR</strong>
+            </div>
           </div>
           <div className="quick-actions">
             {quickActions.map((item) => (
@@ -175,6 +189,7 @@ export function AIAssistantPanel() {
             ))}
           </div>
           <div className="composer">
+            <div className="assistant-compose-label">直接问我：经营分析、任务汇总、门店资料、采购建议</div>
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
