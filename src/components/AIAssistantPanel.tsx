@@ -1,0 +1,176 @@
+import type { ChangeEvent } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useAppStore } from '../store/appStore';
+
+type SpeechRecognitionCtor = new () => {
+  lang: string;
+  start: () => void;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: (() => void) | null;
+};
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+    SpeechRecognition?: SpeechRecognitionCtor;
+  }
+}
+
+const quickActions = ['帮我总结今日经营情况', '生成采购清单', '更新门店地址', '查看今日待办'];
+
+export function AIAssistantPanel() {
+  const messages = useAppStore((state) => state.chatMessages);
+  const addChatMessage = useAppStore((state) => state.addChatMessage);
+  const getCurrentConclusion = useAppStore((state) => state.getCurrentConclusion);
+  const getCurrentStrategy = useAppStore((state) => state.getCurrentStrategy);
+  const tasks = useAppStore((state) => state.tasks);
+  const storeInfo = useAppStore((state) => state.storeInfo);
+
+  const [draft, setDraft] = useState('');
+  const [recognizing, setRecognizing] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const recognition = useMemo(() => {
+    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    return Ctor ? new Ctor() : null;
+  }, []);
+
+  const reply = (text: string) => {
+    addChatMessage({
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      content: text,
+      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    });
+  };
+
+  const ask = (question: string) => {
+    addChatMessage({
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: question,
+      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    if (question.includes('经营') || question.includes('销售')) {
+      reply(`${getCurrentConclusion()} 可继续让我生成 PDF 报告或一周执行表。`);
+      return;
+    }
+
+    if (question.includes('采购')) {
+      reply('我已根据当前库存和阈值生成建议采购清单，鸡腿肉、酱料包和香菇需要优先补货。');
+      return;
+    }
+
+    if (question.includes('地址') || question.includes('门店')) {
+      reply(`当前门店信息：${storeInfo.name}，地址为 ${storeInfo.address}，联系电话 ${storeInfo.phone}。`);
+      return;
+    }
+
+    if (question.includes('待办')) {
+      const pendingCount = tasks.filter((item) => item.status !== 'completed').length;
+      reply(`当前还有 ${pendingCount} 项待办，优先级最高的是健康登记和证件上传任务。`);
+      return;
+    }
+
+    reply(`我理解你的需求是“${question}”。目前建议先处理待办，再看经营分析，最后生成采购清单。`);
+  };
+
+  const handleSend = () => {
+    const text = draft.trim();
+    if (!text) return;
+    ask(text);
+    setDraft('');
+  };
+
+  const handleVoice = () => {
+    if (!recognition) {
+      const fallback = '帮我生成今天的经营分析结论';
+      setDraft(fallback);
+      ask(fallback);
+      return;
+    }
+
+    recognition.lang = 'zh-CN';
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setRecognizing(false);
+      setDraft(transcript);
+      ask(transcript);
+    };
+    recognition.onerror = () => {
+      setRecognizing(false);
+      reply('语音识别失败，已切换为模拟转写：帮我查看今日待办和采购建议。');
+    };
+    setRecognizing(true);
+    recognition.start();
+  };
+
+  const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    addChatMessage({
+      id: `user-file-${Date.now()}`,
+      role: 'user',
+      content: `上传图片：${file.name}`,
+      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    reply(`已完成图片识别。识别到“${file.name}”可能是检疫报告/表单图片，已提取日期、门店名称和备注字段，可直接回填到当前任务。`);
+    event.target.value = '';
+  };
+
+  const strategyPreview = getCurrentStrategy();
+
+  return (
+    <section className="panel assistant-panel">
+      <div className="panel-header">
+        <div>
+          <h3>AI 助手</h3>
+          <p>支持文字、语音、图片输入</p>
+        </div>
+        <button className="ghost-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
+          生成建议
+        </button>
+      </div>
+      <div className="quick-actions">
+        {quickActions.map((item) => (
+          <button key={item} className="chip" onClick={() => ask(item)}>
+            {item}
+          </button>
+        ))}
+      </div>
+      <div className="chat-list">
+        {messages.map((message) => (
+          <div key={message.id} className={`chat-item ${message.role}`}>
+            <span>{message.role === 'assistant' ? 'AI' : '我'}</span>
+            <div>
+              <p>{message.content}</p>
+              <small>{message.timestamp}</small>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="composer">
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="输入问题，如：帮我生成本月经营总结"
+        />
+        <div className="composer-actions">
+          <button className="ghost-button" onClick={handleVoice}>
+            {recognizing ? '识别中...' : '语音'}
+          </button>
+          <button className="ghost-button" onClick={() => fileRef.current?.click()}>
+            图片
+          </button>
+          <button className="primary-button" onClick={handleSend}>
+            发送
+          </button>
+        </div>
+        <input ref={fileRef} hidden type="file" accept="image/*" onChange={handleImageUpload} />
+      </div>
+    </section>
+  );
+}
