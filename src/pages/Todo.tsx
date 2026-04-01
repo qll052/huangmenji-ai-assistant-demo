@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { AIAssistantPanel } from '../components/AIAssistantPanel';
 import { TaskCard } from '../components/TaskCard';
 import { useAppStore } from '../store/appStore';
 import type { Task } from '../types';
@@ -32,12 +31,12 @@ export function TodoPage() {
   }, [tasks]);
 
   return (
-    <div className="page-grid two-column">
+    <div className="page-grid">
       <section className="panel">
         <div className="panel-header">
           <div>
             <h2>待办任务汇总</h2>
-            <p>支持总部消息解析、任务分类、去完成和日报更新。</p>
+            <p>只保留待办列表和核心动作，任务详情点击后再展开。</p>
           </div>
           <button className="ghost-button" onClick={() => setShowBrief(true)}>
             查看日报弹窗
@@ -55,73 +54,6 @@ export function TodoPage() {
         ))}
       </section>
 
-      <section className="panel">
-        {activeTask ? (
-          <>
-            <div className="panel-header">
-              <div>
-                <h2>{activeTask.title}</h2>
-                <p>{activeTask.description}</p>
-              </div>
-              <span className={`status-tag ${activeTask.status}`}>{activeTask.status}</span>
-            </div>
-            <div className="detail-block">
-              <strong>任务类型</strong>
-              <p>{taskTypeName[activeTask.type]}</p>
-            </div>
-
-            {activeTask.templateFields ? (
-              <div className="detail-block">
-                <strong>自动预填 / 识别回填</strong>
-                <div className="field-grid">
-                  {Object.entries(activeTask.templateFields).map(([key, value]) => (
-                    <label key={key} className="field-card">
-                      <span>{key}</span>
-                      <input defaultValue={value} />
-                    </label>
-                  ))}
-                  <label className="field-card full">
-                    <span>补充内容（支持语音/图片识别结果回填）</span>
-                    <textarea rows={5} value={filledText} onChange={(event) => setFilledText(event.target.value)} />
-                  </label>
-                </div>
-              </div>
-            ) : null}
-
-            {activeTask.steps ? (
-              <div className="detail-block">
-                <strong>操作指引</strong>
-                <ol className="steps">
-                  {activeTask.steps.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-              </div>
-            ) : null}
-
-            <div className="action-row">
-              <button className="ghost-button" onClick={() => setFilledText('已通过图片识别补充检疫报告日期和供应商信息。')}>
-                模拟图片识别回填
-              </button>
-              <button className="ghost-button" onClick={() => setFilledText('通过语音识别填写：员工今日体温 36.5 度，状态正常。')}>
-                模拟语音识别回填
-              </button>
-              <button className="primary-button" onClick={() => completeTask(activeTask.id)}>
-                审核并提交
-              </button>
-            </div>
-
-            <div className="daily-brief">
-              <h3>每日工作简报</h3>
-              <p>今日已完成 {completedCount} 项任务，剩余待办集中在填表与证件上传。建议优先处理高优先级合规任务，再进行午市补货确认。</p>
-            </div>
-          </>
-        ) : (
-          <p>请选择一个任务查看详情。</p>
-        )}
-      </section>
-
-      <AIAssistantPanel />
       {showBrief ? (
         <div className="modal-backdrop" onClick={() => setShowBrief(false)}>
           <div className="brief-modal" onClick={(event) => event.stopPropagation()}>
@@ -151,6 +83,65 @@ export function TodoPage() {
                 <strong>同步动作</strong>
                 <p>日报生成后可直接用于向总部汇报当天完成情况。</p>
               </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {activeTask ? (
+        <div className="modal-backdrop" onClick={() => setActiveTask(undefined)}>
+          <div className="brief-modal detail-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="panel-header">
+              <div>
+                <h2>{activeTask.title}</h2>
+                <p>{activeTask.description}</p>
+              </div>
+              <span className={`status-tag ${activeTask.status}`}>{activeTask.status}</span>
+            </div>
+            <div className="compact-meta">
+              <span>{taskTypeName[activeTask.type]}</span>
+              <span>{activeTask.deadline}</span>
+              <span>{activeTask.source}</span>
+            </div>
+
+            {activeTask.templateFields ? (
+              <div className="detail-block">
+                <strong>表单回填</strong>
+                <div className="field-grid">
+                  {Object.entries(activeTask.templateFields).map(([key, value]) => (
+                    <label key={key} className="field-card">
+                      <span>{key}</span>
+                      <input defaultValue={value} />
+                    </label>
+                  ))}
+                  <label className="field-card full">
+                    <span>补充内容</span>
+                    <textarea rows={5} value={filledText} onChange={(event) => setFilledText(event.target.value)} />
+                  </label>
+                </div>
+              </div>
+            ) : null}
+
+            {activeTask.steps ? (
+              <div className="detail-block">
+                <strong>操作步骤</strong>
+                <ol className="steps">
+                  {activeTask.steps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
+
+            <div className="action-row action-row-start">
+              <button className="ghost-button" onClick={() => setFilledText('已通过图片识别补充检疫报告日期和供应商信息。')}>
+                使用照片结果回填
+              </button>
+              <button className="ghost-button" onClick={() => setFilledText('通过语音识别填写：员工今日体温 36.5 度，状态正常。')}>
+                使用语音结果回填
+              </button>
+              <button className="primary-button" onClick={() => completeTask(activeTask.id)}>
+                审核并提交
+              </button>
             </div>
           </div>
         </div>

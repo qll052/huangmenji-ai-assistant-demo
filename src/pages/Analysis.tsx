@@ -1,4 +1,4 @@
-import { AIAssistantPanel } from '../components/AIAssistantPanel';
+import { useState } from 'react';
 import { MiniBarChart } from '../components/MiniBarChart';
 import { useAppStore } from '../store/appStore';
 import { downloadPdfReport } from '../utils/export';
@@ -14,14 +14,23 @@ export function AnalysisPage() {
   const period = getCurrentSalesPeriod();
   const conclusion = getCurrentConclusion();
   const strategy = getCurrentStrategy();
+  const [showReport, setShowReport] = useState(false);
 
   return (
-    <div className="page-grid two-column">
+    <div className="page-grid">
       <section className="panel">
         <div className="panel-header">
           <div>
             <h2>经营分析</h2>
-            <p>按时间维度查看销售数据，并动态生成 AI 小结、报告和一周执行建议。</p>
+            <p>顶部优先操作，主体只保留核心数据和图表。</p>
+          </div>
+          <div className="action-row">
+            <button className="primary-button" onClick={() => downloadPdfReport(period, conclusion, strategy)}>
+              下载 PDF 报告
+            </button>
+            <button className="ghost-button" onClick={() => setShowReport(true)}>
+              查看 AI 报告
+            </button>
           </div>
         </div>
         <div className="chip-row">
@@ -54,72 +63,73 @@ export function AnalysisPage() {
           </article>
         </div>
         <MiniBarChart data={period.chart} />
-        <div className="detail-block">
-          <strong>热销排行</strong>
-          <div className="ranking-list">
-            {period.topItems.map((item, index) => (
-              <div key={item.name} className="ranking-item">
-                <span>TOP {index + 1}</span>
-                <strong>{item.name}</strong>
-                <small>{item.value}</small>
-              </div>
-            ))}
-          </div>
+        <div className="ranking-inline">
+          {period.topItems.map((item, index) => (
+            <div key={item.name} className="ranking-item">
+              <span>TOP {index + 1}</span>
+              <strong>{item.name}</strong>
+              <small>{item.value}</small>
+            </div>
+          ))}
         </div>
       </section>
-
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>AI 结论与策略</h2>
-            <p>分析结论会随着所选销售周期变化。</p>
-          </div>
-        </div>
-        <div className="daily-brief">
-          <h3>AI 经营小结</h3>
-          <p>{conclusion}</p>
-        </div>
-        <div className="detail-block">
-          <strong>运营策略</strong>
-          <ol className="steps">
-            {strategy.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ol>
-        </div>
-        <div className="detail-block">
-          <strong>一周执行表</strong>
-          <div className="schedule-grid">
-            <div>周一：检查备料与热销波动</div>
-            <div>周二：优化外卖套餐文案</div>
-            <div>周三：复盘高峰时段出餐</div>
-            <div>周四：盘点库存并更新采购计划</div>
-            <div>周五：做周末促销预热</div>
-          </div>
-        </div>
-        <div className="report-preview">
-          <div className="report-sheet">
-            <span className="report-tag">PDF 报告预览</span>
-            <h3>{period.label}销售分析报告</h3>
-            <p>{conclusion}</p>
-            <div className="report-metrics">
-              <span>营收 {period.overview.revenue}</span>
-              <span>订单 {period.overview.orders}</span>
-              <span>增长 {period.overview.growth}%</span>
+      {showReport ? (
+        <div className="modal-backdrop" onClick={() => setShowReport(false)}>
+          <div className="brief-modal detail-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="panel-header">
+              <div>
+                <h2>{period.label} AI 分析报告</h2>
+                <p>分析结论会随着所选销售周期变化。</p>
+              </div>
+              <button className="ghost-button" onClick={() => setShowReport(false)}>
+                关闭
+              </button>
+            </div>
+            <div className="daily-brief">
+              <h3>AI 经营小结</h3>
+              <p>{conclusion}</p>
+            </div>
+            <div className="detail-block">
+              <strong>运营策略</strong>
+              <ol className="steps">
+                {strategy.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ol>
+            </div>
+            <div className="detail-block">
+              <strong>一周执行表</strong>
+              <div className="schedule-grid">
+                <div>周一：检查备料与热销波动</div>
+                <div>周二：优化外卖套餐文案</div>
+                <div>周三：复盘高峰时段出餐</div>
+                <div>周四：盘点库存并更新采购计划</div>
+                <div>周五：做周末促销预热</div>
+              </div>
+            </div>
+            <div className="report-preview">
+              <div className="report-sheet">
+                <span className="report-tag">PDF 报告预览</span>
+                <h3>{period.label}销售分析报告</h3>
+                <p>{conclusion}</p>
+                <div className="report-metrics">
+                  <span>营收 {period.overview.revenue}</span>
+                  <span>订单 {period.overview.orders}</span>
+                  <span>增长 {period.overview.growth}%</span>
+                </div>
+              </div>
+            </div>
+            <div className="action-row action-row-start">
+              <button className="primary-button" onClick={() => downloadPdfReport(period, conclusion, strategy)}>
+                下载 PDF 报告
+              </button>
+              <button className="ghost-button" onClick={() => window.print()}>
+                打印演示页
+              </button>
             </div>
           </div>
         </div>
-        <div className="action-row">
-          <button className="primary-button" onClick={() => downloadPdfReport(period, conclusion, strategy)}>
-            下载 PDF 报告
-          </button>
-          <button className="ghost-button" onClick={() => window.print()}>
-            打印演示页
-          </button>
-        </div>
-      </section>
-
-      <AIAssistantPanel />
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import { useMemo, useRef, useState } from 'react';
+import { createWorker } from 'tesseract.js';
 import { useAppStore } from '../store/appStore';
 
 type SpeechRecognitionCtor = new () => {
@@ -28,6 +29,8 @@ export function AIAssistantPanel() {
 
   const [draft, setDraft] = useState('');
   const [recognizing, setRecognizing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const recognition = useMemo(() => {
@@ -85,9 +88,7 @@ export function AIAssistantPanel() {
 
   const handleVoice = () => {
     if (!recognition) {
-      const fallback = '帮我生成今天的经营分析结论';
-      setDraft(fallback);
-      ask(fallback);
+      reply('当前浏览器不支持语音识别，请使用 Chrome 或 Edge 后再试。');
       return;
     }
 
@@ -100,7 +101,7 @@ export function AIAssistantPanel() {
     };
     recognition.onerror = () => {
       setRecognizing(false);
-      reply('语音识别失败，已切换为模拟转写：帮我查看今日待办和采购建议。');
+      reply('语音识别失败，请检查麦克风权限后重试。');
     };
     setRecognizing(true);
     recognition.start();
@@ -116,61 +117,84 @@ export function AIAssistantPanel() {
       timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    reply(`已完成图片识别。识别到“${file.name}”可能是检疫报告/表单图片，已提取日期、门店名称和备注字段，可直接回填到当前任务。`);
+    setExpanded(true);
+    setOcrLoading(true);
+
+    try {
+      const worker = await createWorker('chi_sim+eng');
+      const {
+        data: { text },
+      } = await worker.recognize(file);
+      await worker.terminate();
+
+      const cleanText = text.replace(/\s+/g, ' ').trim();
+      const preview = cleanText ? cleanText.slice(0, 120) : '未识别到清晰文字';
+      reply(`已完成图片识别。提取结果预览：${preview}${cleanText.length > 120 ? '...' : ''}`);
+    } catch {
+      reply(`图片已上传，但 OCR 识别失败。请尝试更清晰的表单或报告图片：${file.name}`);
+    } finally {
+      setOcrLoading(false);
+    }
     event.target.value = '';
   };
 
   const strategyPreview = getCurrentStrategy();
 
   return (
-    <section className="panel assistant-panel">
-      <div className="panel-header">
-        <div>
-          <h3>AI 助手</h3>
-          <p>支持文字、语音、图片输入</p>
-        </div>
-        <button className="ghost-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
-          生成建议
-        </button>
-      </div>
-      <div className="quick-actions">
-        {quickActions.map((item) => (
-          <button key={item} className="chip" onClick={() => ask(item)}>
-            {item}
-          </button>
-        ))}
-      </div>
-      <div className="chat-list">
-        {messages.map((message) => (
-          <div key={message.id} className={`chat-item ${message.role}`}>
-            <span>{message.role === 'assistant' ? 'AI' : '我'}</span>
+    <>
+      <button className="assistant-fab" onClick={() => setExpanded((value) => !value)}>
+        {expanded ? '收起 AI' : '打开 AI'}
+      </button>
+      {expanded ? (
+        <section className="assistant-drawer">
+          <div className="panel-header">
             <div>
-              <p>{message.content}</p>
-              <small>{message.timestamp}</small>
+              <h3>AI 助手</h3>
+              <p>{ocrLoading ? '正在识别图片内容...' : '支持文字、真实语音识别、真实图片 OCR'}</p>
             </div>
+            <button className="ghost-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
+              生成建议
+            </button>
           </div>
-        ))}
-      </div>
-      <div className="composer">
-        <input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="输入问题，如：帮我生成本月经营总结"
-        />
-        <div className="composer-actions">
-          <button className="ghost-button" onClick={handleVoice}>
-            {recognizing ? '识别中...' : '语音'}
-          </button>
-          <button className="ghost-button" onClick={() => fileRef.current?.click()}>
-            图片
-          </button>
-          <button className="primary-button" onClick={handleSend}>
-            发送
-          </button>
-        </div>
-        <input ref={fileRef} hidden type="file" accept="image/*" onChange={handleImageUpload} />
-      </div>
-    </section>
+          <div className="quick-actions">
+            {quickActions.map((item) => (
+              <button key={item} className="chip" onClick={() => ask(item)}>
+                {item}
+              </button>
+            ))}
+          </div>
+          <div className="chat-list">
+            {messages.map((message) => (
+              <div key={message.id} className={`chat-item ${message.role}`}>
+                <span>{message.role === 'assistant' ? 'AI' : '我'}</span>
+                <div>
+                  <p>{message.content}</p>
+                  <small>{message.timestamp}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="composer">
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="输入问题，如：帮我生成本月经营总结"
+            />
+            <div className="composer-actions">
+              <button className="ghost-button" onClick={handleVoice}>
+                {recognizing ? '语音识别中...' : '语音输入'}
+              </button>
+              <button className="ghost-button" onClick={() => fileRef.current?.click()} disabled={ocrLoading}>
+                {ocrLoading ? '图片识别中...' : '上传照片'}
+              </button>
+              <button className="primary-button" onClick={handleSend}>
+                发送
+              </button>
+            </div>
+            <input ref={fileRef} hidden type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+        </section>
+      ) : null}
+    </>
   );
 }

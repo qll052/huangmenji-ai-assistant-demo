@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AIAssistantPanel } from '../components/AIAssistantPanel';
 import { useAppStore } from '../store/appStore';
 
 const cards = [
@@ -103,7 +102,6 @@ export function HomePage() {
           </Link>
         ))}
       </div>
-      <AIAssistantPanel />
     </div>
   );
 }
