@@ -22,22 +22,25 @@ export function KnowledgeBasePage() {
         <div className="panel-header">
           <div>
             <h2>我的知识库</h2>
-            <p>只显示关键资料入口，点击后再编辑详情。</p>
+            <p>保留店铺核心资料卡片，避免页面空和丑。</p>
           </div>
           <button className="ghost-button" onClick={() => setShowStoreEdit(true)}>编辑门店资料</button>
         </div>
         <div className="summary-grid">
-          <article className="summary-card">
+          <article className="summary-card summary-hero">
             <span>门店名称</span>
             <strong>{storeInfo.name}</strong>
+            <small>标准信息已接入待办预填和 AI 回复</small>
           </article>
           <article className="summary-card">
             <span>店长</span>
             <strong>{storeInfo.manager}</strong>
+            <small>联系电话：{storeInfo.phone}</small>
           </article>
           <article className="summary-card wide">
             <span>门店地址</span>
             <strong>{storeInfo.address}</strong>
+            <small>营业时间：{storeInfo.openTime}</small>
           </article>
         </div>
       </section>
@@ -55,6 +58,7 @@ export function KnowledgeBasePage() {
             <button key={item.id} className={`template-item ${editingId === item.id ? 'active' : ''}`} onClick={() => setEditingId(item.id)}>
               <strong>{item.name}</strong>
               <span>{item.category}</span>
+              <p>{item.content}</p>
               <small>{item.updatedAt}</small>
             </button>
           ))}

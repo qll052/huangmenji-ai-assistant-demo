@@ -152,7 +152,7 @@ export function AIAssistantPanel() {
               <h3>AI 助手</h3>
               <p>{ocrLoading ? '正在识别图片内容...' : '支持文字、真实语音识别、真实图片 OCR'}</p>
             </div>
-            <button className="ghost-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
+            <button className="ghost-button assistant-suggest-button" onClick={() => reply(`经营建议：${strategyPreview.join('；')}`)}>
               生成建议
             </button>
           </div>

@@ -21,7 +21,7 @@ export function InventoryPage() {
           </div>
           <div className="action-row">
             <button className="primary-button" onClick={() => downloadExcelLikeFile(inventory)}>
-              生成并下载采购清单
+              下载采购清单 CSV
             </button>
             <button className="ghost-button" onClick={() => setShowQuery(true)}>
               查询原材料

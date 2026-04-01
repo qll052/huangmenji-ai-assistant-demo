@@ -432,6 +432,23 @@ textarea {
   box-shadow: 0 14px 30px rgba(29, 78, 216, 0.08);
 }
 
+.task-card .status-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #155eef;
+}
+
+.task-card .status-tag.completed {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.task-card .status-tag.in_progress {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 .task-group + .task-group {
   margin-top: 24px;
 }
@@ -462,6 +479,30 @@ textarea {
 .summary-card strong,
 .stat-card strong {
   font-size: 28px;
+}
+
+.summary-card {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.summary-card small,
+.template-item p,
+.template-item small {
+  color: #64748b;
+}
+
+.summary-hero {
+  background: linear-gradient(135deg, #eef5ff, #f8fbff);
+  border-color: #dbe7ff;
+}
+
+.summary-hero strong {
+  font-size: 34px;
+  line-height: 1.25;
 }
 
 .detail-block + .detail-block,
@@ -589,6 +630,8 @@ textarea {
   background: #fff;
   padding: 28px;
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .detail-modal {
@@ -635,9 +678,10 @@ textarea {
   max-height: min(76vh, 760px);
   z-index: 119;
   border-radius: 28px;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   padding: 24px;
   box-shadow: 0 26px 70px rgba(15, 23, 42, 0.22);
+  border: 1px solid #e8eef8;
 }
 
 .chat-list {
@@ -671,7 +715,7 @@ textarea {
 }
 
 .chat-item div {
-  background: #f8fafc;
+  background: #f7faff;
   border-radius: 16px;
   padding: 12px 14px;
   flex: 1;
@@ -689,6 +733,24 @@ textarea {
 .quick-actions,
 .chip-row {
   flex-wrap: wrap;
+}
+
+.assistant-suggest-button {
+  flex-shrink: 0;
+}
+
+.assistant-drawer .chip {
+  background: #fff;
+  min-height: 54px;
+}
+
+.assistant-drawer input {
+  min-height: 58px;
+}
+
+.assistant-drawer .primary-button,
+.assistant-drawer .ghost-button {
+  min-width: 110px;
 }
 
 @keyframes pulseCard {

@@ -21,6 +21,11 @@ export function TodoPage() {
   const activeTask = tasks.find((item) => item.id === activeTaskId);
   const completedCount = tasks.filter((item) => item.status === 'completed').length;
 
+  const handleComplete = (id: string) => {
+    completeTask(id);
+    setActiveTask(undefined);
+  };
+
   const grouped = useMemo(() => {
     return tasks.reduce<Record<string, Task[]>>((acc, task) => {
       const key = task.type;
@@ -139,7 +144,7 @@ export function TodoPage() {
               <button className="ghost-button" onClick={() => setFilledText('通过语音识别填写：员工今日体温 36.5 度，状态正常。')}>
                 使用语音结果回填
               </button>
-              <button className="primary-button" onClick={() => completeTask(activeTask.id)}>
+              <button className="primary-button" onClick={() => handleComplete(activeTask.id)}>
                 审核并提交
               </button>
             </div>

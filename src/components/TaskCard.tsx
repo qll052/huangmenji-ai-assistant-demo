@@ -17,16 +17,16 @@ export function TaskCard({ task, onOpen }: TaskCardProps) {
     <article className="task-card">
       <div className="task-card-top">
         <span className={`priority ${task.priority}`}>{task.priority}</span>
-        <span className="type-tag">{typeLabel[task.type]}</span>
+        <span className={`status-tag ${task.status}`}>{task.status === 'completed' ? '已完成' : task.status === 'in_progress' ? '进行中' : '待处理'}</span>
       </div>
       <h4>{task.title}</h4>
       <p>{task.description}</p>
       <div className="meta-row">
-        <span>{task.source}</span>
+        <span className="type-tag">{typeLabel[task.type]}</span>
         <span>{task.deadline}</span>
       </div>
       <button className="primary-button" onClick={() => onOpen(task.id)}>
-        去完成
+        {task.status === 'completed' ? '查看详情' : '去完成'}
       </button>
     </article>
   );

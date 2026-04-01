@@ -26,7 +26,7 @@ export function AnalysisPage() {
           </div>
           <div className="action-row">
             <button className="primary-button" onClick={() => downloadPdfReport(period, conclusion, strategy)}>
-              下载 PDF 报告
+              下载销售分析 PDF
             </button>
             <button className="ghost-button" onClick={() => setShowReport(true)}>
               查看 AI 报告
@@ -121,7 +121,7 @@ export function AnalysisPage() {
             </div>
             <div className="action-row action-row-start">
               <button className="primary-button" onClick={() => downloadPdfReport(period, conclusion, strategy)}>
-                下载 PDF 报告
+                下载销售分析 PDF
               </button>
               <button className="ghost-button" onClick={() => window.print()}>
                 打印演示页
